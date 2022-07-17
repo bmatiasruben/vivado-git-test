@@ -18,11 +18,11 @@
 proc checkRequiredFiles { origin_dir} {
   set status true
   set files [list \
- "[file normalize "$origin_dir/vivado_project/idelay_test.srcs/constrs_1/new/pin.xdc"]"\
+ "[file normalize "$origin_dir/src/constraints/pin.xdc"]"\
   ]
   foreach ifile $files {
     if { ![file isfile $ifile] } {
-      puts " Could not find local file $ifile "
+      puts " Could not find remote file $ifile "
       set status false
     }
   }
@@ -160,16 +160,17 @@ if {[string equal [get_filesets -quiet constrs_1] ""]} {
 set obj [get_filesets constrs_1]
 
 # Add/Import constrs file and set constrs file properties
-set file "[file normalize "$origin_dir/vivado_project/idelay_test.srcs/constrs_1/new/pin.xdc"]"
+set file "[file normalize "$origin_dir/src/constraints/pin.xdc"]"
 set file_added [add_files -norecurse -fileset $obj [list $file]]
-set file "new/pin.xdc"
+set file "$origin_dir/src/constraints/pin.xdc"
+set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
 set_property -name "file_type" -value "XDC" -objects $file_obj
 
 # Set 'constrs_1' fileset properties
 set obj [get_filesets constrs_1]
-set_property -name "target_constrs_file" -value "[get_files *new/pin.xdc]" -objects $obj
-set_property -name "target_ucf" -value "[get_files *new/pin.xdc]" -objects $obj
+set_property -name "target_constrs_file" -value "[file normalize "$origin_dir/src/constraints/pin.xdc"]" -objects $obj
+set_property -name "target_ucf" -value "[file normalize "$origin_dir/src/constraints/pin.xdc"]" -objects $obj
 
 # Create 'sim_1' fileset (if not found)
 if {[string equal [get_filesets -quiet sim_1] ""]} {
@@ -192,8 +193,6 @@ set obj [get_filesets utils_1]
 # Set 'utils_1' fileset properties
 set obj [get_filesets utils_1]
 
-
-# Adding sources referenced in BDs, if not already added
 set idrFlowPropertiesConstraints ""
 catch {
  set idrFlowPropertiesConstraints [get_param runs.disableIDRFlowPropertyConstraints]
@@ -220,6 +219,7 @@ if { $obj != "" } {
 
 }
 set obj [get_runs synth_1]
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Synthesis Defaults" -objects $obj
 
 # set the current synth run
@@ -433,6 +433,7 @@ set_property -name "options.warn_on_violation" -value "1" -objects $obj
 
 }
 set obj [get_runs impl_1]
+set_property -name "needs_refresh" -value "1" -objects $obj
 set_property -name "strategy" -value "Vivado Implementation Defaults" -objects $obj
 set_property -name "steps.write_bitstream.args.readback_file" -value "0" -objects $obj
 set_property -name "steps.write_bitstream.args.verbose" -value "0" -objects $obj
